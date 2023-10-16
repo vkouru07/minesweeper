@@ -1,4 +1,5 @@
 import pgzrun
+from minesweeper import *
 
 WIDTH = 1000
 HEIGHT = 900
@@ -12,4 +13,6 @@ def update (delta_time: float):
 def draw ():
     pass
 
+
+board = Board(1, 3)
 pgzrun.go()
