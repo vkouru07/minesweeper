@@ -1,6 +1,7 @@
 import random
 import re
 import logging
+import goo
 
 # row, col 
 MOVEMENTS = [[-1, -1], [-1, 0], [-1, 1],
@@ -100,3 +101,9 @@ class Board:
         for row in self.board:
             for s in row:
                 s.visible = True
+    
+    def getwon (self) -> bool:
+        return self.n_non_bomb_squares == 0
+
+    def generate_gui () -> goo.Goo:
+        pass
