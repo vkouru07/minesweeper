@@ -34,6 +34,7 @@ while not gameover:
     move = get_turn()
     gameover = not board.turn(move[0], move[1], move[2])
 
+board.setall_visible()
 print (board)
 print ("done")
 # pgzrun.go()
