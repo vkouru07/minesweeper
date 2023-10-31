@@ -1,5 +1,6 @@
 import pgzrun
 from minesweeper import *
+from goo import *
 
 gameover = False
 
@@ -16,8 +17,10 @@ def draw ():
     pass
 
 board = Board(4, 6)
+goop = Goo (board, 0, 0)
 
 pgzrun.go()
+
 # while not gameover:
 #     print (board)
 #     move = get_turn()
