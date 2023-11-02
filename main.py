@@ -1,40 +1,38 @@
 import pgzrun
-from minesweeper import *
+import math
+import random
+import minesweeper
+from pgzero.builtins import Actor, mouse
 
-gameover = False
 
-# WIDTH = 1000
-# HEIGHT = 900
+TITLE = "minesweeper"
 
-def get_turn ():
-    r = int(input ("row (starting from 0) "))
-    c = int(input ("col (starting from 0) "))
-    f1 = input ("are you toggling a flag? (y/n) ")
-    f = True
-    if "n" in f1:
-        f = False
+ROWS = 10
+COLS = 10
+S_WIDTH = 45
+
+WIDTH = COLS * S_WIDTH
+HEIGHT = ROWS * S_WIDTH
+BOMBS = random.randrange (math.floor(ROWS * COLS/8), math.floor(ROWS * COLS/5))
+
+board = minesweeper.Minesweeper (ROWS, COLS, BOMBS, S_WIDTH)
+
+def on_gameover ():
+    print ("failed")
+
+def on_mouse_down (pos, button):
+    row = math.floor(pos[1]/S_WIDTH)
+    col = math.floor(pos[0]/S_WIDTH)
+
+    if button == mouse.RIGHT:
+        board.toggle_flag (row, col)
     
-    return [r, c, f]
-    
+    elif board.isbomb (row, col):
+        board.pressed_bomb ()
+    else:
+        board.empty_space (row, col)
 
-# def on_mouse_move (pos: tuple):
-#     pass
+def draw ():
+    board.draw()
 
-# def update (delta_time: float):
-#     pass
-
-# def draw ():
-#     pass
-
-
-board = Board(4, 6)
-
-while not gameover:
-    print (board)
-    move = get_turn()
-    gameover = not board.turn(move[0], move[1], move[2])
-
-board.setall_visible()
-print (board)
-print ("done")
-# pgzrun.go()
+pgzrun.go()

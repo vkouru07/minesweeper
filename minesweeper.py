@@ -1,102 +1,88 @@
+import pgzrun
+from pgzero.builtins import Actor
 import random
-import re
-import logging
+import oth
 
-# row, col 
-MOVEMENTS = [[-1, -1], [-1, 0], [-1, 1],
-             [0, -1],           [0, 1],
-             [1, -1], [1, 0], [1, 1]]
-CROSS_MOVEMENTS = [MOVEMENTS[1], MOVEMENTS[3], MOVEMENTS[4], MOVEMENTS[6]]
-
-class Board:
-    class _Space:
-        def __init__ (self):
-            self.visible = False
-            self.flagged = False
-            self.isbomb = False
-            self.surrounding = 0
-        
-        def __str__(self) -> str:
-            if self.visible:
-                if self.isbomb:
-                    return "ø"
-                return str(self.surrounding)
-            if self.flagged:
-                return "%"
-            return "_"
-    
-    def __init__(self, rows: int, cols: int):
+class Minesweeper ():
+    def __init__(self, rows, cols, n_bombs, s_width) -> None:
         self.ROWS = rows
-        self.COLS = cols
+        self.COLS = cols 
+        self.BOMBS = n_bombs
+        self.S_WIDTH = s_width
 
-        self.board = None
-        self.n_bombs = 0
-        self._rand_board()
-        self.n_non_bomb_squares = self.ROWS * self.COLS - self.n_bombs
-        
-
-    def _rand_board (self):
-        self.board = [[self._Space() for _ in range (self.COLS)] for _ in range(self.ROWS)]
-        self.n_bombs = random.randrange (1, int(self.COLS * self.ROWS / 4) + 1)
-
+        # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
+        self._grid = [[[Actor('11'), False, 0, False, False] for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        self._initboard ()
+    
+    def _initboard (self):
         planted = 0
-        while planted < self.n_bombs:
-            x = random.randrange (self.COLS)
-            y = random.randrange (self.ROWS)
-            
-            if self.board[y][x].isbomb:
+        while planted < self.BOMBS:
+            r = random.choice (range(self.ROWS))
+            c = random.choice (range(self.COLS))
+
+            if self._grid[r][c][1]:
                 continue
-            self.board[y][x].isbomb = True
-            for move in MOVEMENTS:
+            self._grid[r][c][1] = True
+
+            for move in oth.MOVEMENTS:
                 try:
-                    self.board[y + move[0]][x + move[1]].surrounding += 1
+                    self._grid [r + move[0]][c + move[1]][2] += 1
                 except IndexError:
                     pass
-                
             planted += 1
-
-    def __str__ (self):
-        st = ""
-        for row in self.board:
-            for s in row:
-                st += str(s) + " "
-            st += "\n"
-        return st
-
-    # true if safe, false if gameover  
-    def turn (self, r:int, c:int, f:bool) -> bool:
-        if r < 0 or r >= self.ROWS or c < 0 or c >= self.COLS:
-            return True
-        if f:
-            self.board[r][c].flagged = not self.board[r][c].flagged
-            return True
         
-        self.board[r][c].visible = True
-        if self.board[r][c].isbomb:
-            return False
-        self._remptyspace (r, c, True)
-        return True
+        for row in range (self.ROWS):
+            for col in range (self.COLS):
+                self._grid[row][col][0].pos = self.S_WIDTH * (col + 1/2), self.S_WIDTH * (row + 1/2)
 
-    def _remptyspace (self, r:int, c:int, first):
-        if r < 0 or r >= self.ROWS or c < 0 or c >= self.COLS:
-            return
-        if self.board[r][c].isbomb or not first and self.board[r][c].visible:
+    def _update_img (self, row:int, col:int):
+        if not self._grid [row][col][4]:
+            if self._grid [row][col][3]:
+                self._grid [row][col][0].image = '11'
+            else:
+                self._grid [row][col][0].image = '10'
+        else:
+            if self._grid [row][col][1]:
+                self._grid [row][col][0].image = '09'
+            else:
+                self._grid [row][col][0].image = '0' + str(self._grid[row][col][2])
+    
+    def isbomb (self, row:int, col:int) -> bool:
+        return self._grid [row][col][1]
+
+    def pressed_bomb (self):
+        for r in range (self.ROWS):
+            for c in range (self.COLS):
+                self._grid [r][c][4] = True
+        self.draw ()
+
+    def toggle_flag (self, row:int, col:int):
+        if self._grid[row][col][3]:
+            self._grid[row][col][3] = False
+        else:
+            self._grid[row][col][3] = True
+        self._update_img (row, col)
+
+    def empty_space (self, row:int, col:int):
+        self._grid [row][col][4] = True
+        self._rempty_space (row, col)
+    
+    def _rempty_space (self, row:int, col:int):
+        if self.isbomb (row, col) or self._grid [row][col][4]:
             return
         
-        if self.board[r][c].surrounding > 0:
-            for move in MOVEMENTS:
-                self.board[r + move[0]][c + move[1]].visible = True
-                self.n_non_bomb_squares -= 1
+        self._grid [row][col][4] = True
+        if self._grid [row][col][2] != 0:
             return
-        
-        self.board[r][c].visible = True
-        self.n_non_bomb_squares -= 1
-
-        for move in CROSS_MOVEMENTS:
-            self._remptyspace (r + move[0], c + move[1], False)
+        for move in oth.CROSS_MOVEMENTS:
+            try:
+                self._rempty_space (row + move[0], col + move[1])
+            except IndexError:
+                pass
         return
-        
-    def setall_visible (self):
-        for row in self.board:
-            for s in row:
-                s.visible = True
+
+    def draw (self):
+        for r in range (self.ROWS):
+            for c in range (self.COLS):
+                self._update_img (r, c)
+                self._grid [r][c][0].draw()
