@@ -12,15 +12,21 @@ class Minesweeper ():
 
         # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
         self._grid = [[[Actor('11'), False, 0, False, False] for _ in range(self.COLS)] for _ in range(self.ROWS)]
-        self._initboard ()
+        self.position_grid ()
+        # self.initboard (pos)
     
-    def _initboard (self):
+    def position_grid (self):
+        for row in range (self.ROWS):
+            for col in range (self.COLS):
+                self._grid[row][col][0].pos = self.S_WIDTH * (col + 1/2), self.S_WIDTH * (row + 1/2)
+
+    def initboard (self, pos):
         planted = 0
         while planted < self.BOMBS:
             r = random.choice (range(self.ROWS))
             c = random.choice (range(self.COLS))
 
-            if self._grid[r][c][1]:
+            if self._grid[r][c][1] or (r == pos[0] and c == pos[1]):
                 continue
             self._grid[r][c][1] = True
 
@@ -30,10 +36,8 @@ class Minesweeper ():
                 except IndexError:
                     pass
             planted += 1
-        
-        for row in range (self.ROWS):
-            for col in range (self.COLS):
-                self._grid[row][col][0].pos = self.S_WIDTH * (col + 1/2), self.S_WIDTH * (row + 1/2)
+
+        self.empty_space (pos[0], pos[1])
 
     def _update_img (self, row:int, col:int):
         if not self._grid [row][col][4]:
@@ -57,14 +61,10 @@ class Minesweeper ():
         self.draw ()
 
     def toggle_flag (self, row:int, col:int):
-        if self._grid[row][col][3]:
-            self._grid[row][col][3] = False
-        else:
-            self._grid[row][col][3] = True
+        self._grid[row][col][3] = not self._grid[row][col][3]
         self._update_img (row, col)
 
     def empty_space (self, row:int, col:int):
-        self._grid [row][col][4] = True
         self._rempty_space (row, col)
     
     def _rempty_space (self, row:int, col:int):
@@ -72,14 +72,24 @@ class Minesweeper ():
             return
         
         self._grid [row][col][4] = True
+
         if self._grid [row][col][2] != 0:
             return
-        for move in oth.CROSS_MOVEMENTS:
+
+        for move in oth.MOVEMENTS:
             try:
                 self._rempty_space (row + move[0], col + move[1])
             except IndexError:
                 pass
         return
+    
+    def check_if_won (self) -> bool:
+        nonbombs = self.ROWS * self.COLS - self.BOMBS
+        for row in self._grid:
+            for t in row:
+                if not t[1] and t[4]:
+                    nonbombs -= 1
+        return nonbombs == 0
 
     def draw (self):
         for r in range (self.ROWS):
