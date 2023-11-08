@@ -10,8 +10,8 @@ ROWS = 10
 COLS = 14
 S_WIDTH = 45
 
-WIDTH = COLS * S_WIDTH
-HEIGHT = ROWS * S_WIDTH
+WIDTH = (COLS + 1) * S_WIDTH
+HEIGHT = (ROWS + 1) * S_WIDTH
 BOMBS = random.randrange (math.floor(ROWS * COLS/8), math.floor(ROWS * COLS/5))
 
 board = minesweeper.Minesweeper (ROWS, COLS, BOMBS, S_WIDTH)

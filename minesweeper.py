@@ -4,7 +4,7 @@ import random
 import oth
 
 class Minesweeper ():
-    def __init__(self, rows, cols, n_bombs, s_width) -> None:
+    def __init__(self, rows, cols, n_bombs, s_width):
         self.ROWS = rows
         self.COLS = cols 
         self.BOMBS = n_bombs
@@ -12,8 +12,9 @@ class Minesweeper ():
 
         # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
         self._grid = [[[Actor('11'), False, 0, False, False] for _ in range(self.COLS)] for _ in range(self.ROWS)]
+        # print (f"rows {len(self._grid)} cols {len(self._grid[0])}")
+        # print (f"rows {self.ROWS} cols {self.COLS}")
         self.position_grid ()
-        # self.initboard (pos)
     
     def position_grid (self):
         for row in range (self.ROWS):
@@ -21,12 +22,14 @@ class Minesweeper ():
                 self._grid[row][col][0].pos = self.S_WIDTH * (col + 1/2), self.S_WIDTH * (row + 1/2)
 
     def initboard (self, pos):
+        untouched = [(pos[0] + x[0], pos[1] + x[1]) for x in oth.MOVEMENTS]
+        
         planted = 0
         while planted < self.BOMBS:
             r = random.choice (range(self.ROWS))
             c = random.choice (range(self.COLS))
 
-            if self._grid[r][c][1] or (r == pos[0] and c == pos[1]):
+            if self._grid[r][c][1] or (r == pos[0] and c == pos[1]) or (r, c) in untouched:
                 continue
             self._grid[r][c][1] = True
 
