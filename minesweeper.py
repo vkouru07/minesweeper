@@ -53,6 +53,8 @@ class Minesweeper ():
                 self._grid [row][col][0].image = '09'
             else:
                 self._grid [row][col][0].image = '0' + str(self._grid[row][col][2])
+
+        self._grid [row][col][0].draw()
     
     def isbomb (self, row:int, col:int) -> bool:
         return self._grid [row][col][1]
@@ -98,4 +100,3 @@ class Minesweeper ():
         for r in range (self.ROWS):
             for c in range (self.COLS):
                 self._update_img (r, c)
-                self._grid [r][c][0].draw()
