@@ -43,6 +43,7 @@ class Minesweeper ():
         self.empty_space (pos[0], pos[1])
 
     def _update_img (self, row:int, col:int):
+     # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
         if not self._grid [row][col][4]:
             if self._grid [row][col][3]:
                 self._grid [row][col][0].image = '11'
@@ -71,16 +72,17 @@ class Minesweeper ():
 
     def empty_space (self, row:int, col:int):
         self._rempty_space (row, col)
+        self.draw ()
     
     def _rempty_space (self, row:int, col:int):
-        if self.isbomb (row, col) or self._grid [row][col][4]:
+         # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
+        if self._grid[row][col][4]:
             return
         
-        self._grid [row][col][4] = True
-
+        self._grid[row][col][4] == True
         if self._grid [row][col][2] != 0:
             return
-
+        
         for move in oth.MOVEMENTS:
             try:
                 self._rempty_space (row + move[0], col + move[1])
