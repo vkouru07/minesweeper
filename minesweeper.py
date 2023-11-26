@@ -76,10 +76,10 @@ class Minesweeper ():
     
     def _rempty_space (self, row:int, col:int):
          # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
-        if self._grid[row][col][4]:
+        if self._grid[row][col][1] or self._grid[row][col][4]:
             return
         
-        self._grid[row][col][4] == True
+        self._grid[row][col][4] = True
         if self._grid [row][col][2] != 0:
             return
         
