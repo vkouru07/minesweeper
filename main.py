@@ -45,15 +45,17 @@ def on_mouse_down (pos, button):
         if button == mouse.RIGHT:
             board.toggle_flag (row, col)
         
-        elif board.isbomb (row, col):
+        elif not board.isflagged (row, col) and board.isbomb (row, col):
             board.pressed_bomb ()
             gamestate = 2
             return
         else:
             board.empty_space (row, col)
         
+        board.draw ()
         if board.check_if_won():
             gamestate = 1
+
     elif again.collidepoint (pos):
         gamestate = 0
         first_click = True
@@ -61,9 +63,8 @@ def on_mouse_down (pos, button):
 
 
 def draw ():
-    if gamestate == 0:
-        board.draw ()
-    else:
+    board.draw ()
+    if gamestate != 0:
         if gamestate == 1:
             win.draw()
         elif gamestate == 2:

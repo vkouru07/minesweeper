@@ -57,6 +57,8 @@ class Minesweeper ():
     
     def isbomb (self, row:int, col:int) -> bool:
         return self._grid [row][col][1]
+    def isflagged (self, row:int, col:int) -> bool:
+        return self._grid [row][col][3]
 
     def pressed_bomb (self):
         for r in range (self.ROWS):
@@ -67,11 +69,12 @@ class Minesweeper ():
         self._grid[row][col][3] = not self._grid[row][col][3]
 
     def empty_space (self, row:int, col:int):
-        self._rempty_space (row, col)
+        if not self.isflagged(row, col):
+            self._rempty_space (row, col)
     
     def _rempty_space (self, row:int, col:int):
          # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
-        if self._grid[row][col][1] or self._grid[row][col][4]:
+        if self.isbomb(row, col) or self._grid[row][col][4]:
             return
         
         self._grid[row][col][4] = True
