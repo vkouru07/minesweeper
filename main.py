@@ -9,8 +9,8 @@ from pgzero.builtins import Actor, mouse
 
 TITLE = "minesweeper"
 
-ROWS = 10
-COLS = 14
+ROWS = 20
+COLS = 28
 S_WIDTH = 45
 
 WIDTH = COLS * S_WIDTH
