@@ -2,6 +2,9 @@ import pgzrun
 import math
 import random
 import minesweeper
+
+# import tkinter
+# from tkinter import messagebox
 from pgzero.builtins import Actor, mouse
 
 TITLE = "minesweeper"
@@ -16,21 +19,24 @@ BOMBS = random.randrange (math.floor(ROWS * COLS/8), math.floor(ROWS * COLS/5))
 
 board = minesweeper.Minesweeper (ROWS, COLS, BOMBS, S_WIDTH)
 first_click = True
-gameover = False
 
-def on_gameover (won:bool):
-    if won:
-        print ("nice")
-    else:
-        print ("failed")
+gamestate = 0 # 0: running, 1: win, 2:lost 
+
+win = Actor ("win")
+win.pos = WIDTH/2, HEIGHT/2
+lost = Actor ("lost")
+lost.pos = WIDTH/2, HEIGHT/2
+again = Actor ("again")
+again.pos = WIDTH/2, HEIGHT * 2/3
 
 def on_mouse_down (pos, button):
-    global gameover
-    if not gameover:
+    global gamestate
+    global first_click
+    global board
+
+    if gamestate == 0:
         row = math.floor(pos[1]/S_WIDTH)
         col = math.floor(pos[0]/S_WIDTH)
-
-        global first_click
         
         if first_click:
             board.initboard ((row, col))
@@ -41,16 +47,27 @@ def on_mouse_down (pos, button):
         
         elif board.isbomb (row, col):
             board.pressed_bomb ()
-            on_gameover (False)
-            gameover = True
+            gamestate = 2
+            return
         else:
             board.empty_space (row, col)
         
         if board.check_if_won():
-            on_gameover (True)
-            gameover = True
+            gamestate = 1
+    elif again.collidepoint (pos):
+        gamestate = 0
+        first_click = True
+        board = minesweeper.Minesweeper (ROWS, COLS, BOMBS, S_WIDTH)
+
 
 def draw ():
-    board.draw()
+    if gamestate == 0:
+        board.draw ()
+    else:
+        if gamestate == 1:
+            win.draw()
+        elif gamestate == 2:
+            lost.draw()
+        again.draw ()
 
 pgzrun.go()

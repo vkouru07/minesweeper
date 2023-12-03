@@ -11,9 +11,7 @@ class Minesweeper ():
         self.S_WIDTH = s_width
 
         # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
-        self._grid = [[[Actor('11'), False, 0, False, False] for _ in range(self.COLS)] for _ in range(self.ROWS)]
-        # print (f"rows {len(self._grid)} cols {len(self._grid[0])}")
-        # print (f"rows {self.ROWS} cols {self.COLS}")
+        self._grid = [[[Actor('11'), False, 0, False, False] for _ in range(self.COLS +1)] for _ in range(self.ROWS +1)]
         self.position_grid ()
     
     def position_grid (self):
@@ -64,15 +62,12 @@ class Minesweeper ():
         for r in range (self.ROWS):
             for c in range (self.COLS):
                 self._grid [r][c][4] = True
-        self.draw ()
 
     def toggle_flag (self, row:int, col:int):
         self._grid[row][col][3] = not self._grid[row][col][3]
-        self._update_img (row, col)
 
     def empty_space (self, row:int, col:int):
         self._rempty_space (row, col)
-        self.draw ()
     
     def _rempty_space (self, row:int, col:int):
          # 0 actor obj, 1 is it a bomb?, 2 surrounding bombs, 3 flagged?, 4 visible?
@@ -92,9 +87,9 @@ class Minesweeper ():
     
     def check_if_won (self) -> bool:
         nonbombs = self.ROWS * self.COLS - self.BOMBS
-        for row in self._grid:
-            for t in row:
-                if not t[1] and t[4]:
+        for r in range(self.ROWS):
+            for c in range(self.COLS):
+                if not self._grid[r][c][1] and self._grid[r][c][4]:
                     nonbombs -= 1
         return nonbombs == 0
 
@@ -102,3 +97,18 @@ class Minesweeper ():
         for r in range (self.ROWS):
             for c in range (self.COLS):
                 self._update_img (r, c)
+
+    def print(self):
+        for row in self._grid:
+            for s in row:
+                if not s[4]:
+                    if s[3]:
+                        print (' ', end=' ')
+                    else:
+                        print (' ', end=' ')
+                else:
+                    if s[1]:
+                        print ('*', end=' ')
+                    else:
+                        print (s[2], end=' ')
+            print ()
