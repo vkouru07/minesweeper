@@ -80,12 +80,19 @@ class Minesweeper ():
         self._grid[row][col][4] = True
         if self._grid [row][col][2] != 0:
             return
-        
+
         for move in oth.MOVEMENTS:
-            try:
-                self._rempty_space (row + move[0], col + move[1])
-            except IndexError:
-                pass
+            r = row + move[0]
+            c = col + move[1]
+            if r < 0 or r > self.ROWS -2:
+                break
+            if c < 0 or c > self.COLS -2: 
+                break
+            self._rempty_space (r, c)
+            # try:
+            #     self._rempty_space (row + move[0], col + move[1])
+            # except IndexError:
+            #     pass
         return
     
     def check_if_won (self) -> bool:
