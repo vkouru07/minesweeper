@@ -2,14 +2,19 @@ import pgzrun
 import math
 import random
 import minesweeper
+import os 
 
 # import tkinter
 # from tkinter import messagebox
 from pgzero.builtins import Actor, mouse
+from pgzero import screen
+import oth  
+
+os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 TITLE = "minesweeper"
 
-ROWS = 20
+ROWS = 18
 COLS = 28
 S_WIDTH = 45
 
@@ -66,8 +71,10 @@ def draw ():
     board.draw ()
     if gamestate != 0:
         if gamestate == 1:
+            # board.blur_background ()
             win.draw()
         elif gamestate == 2:
+            board.blur_background ()
             lost.draw()
         again.draw ()
 

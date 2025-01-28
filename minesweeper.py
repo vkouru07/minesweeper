@@ -1,4 +1,3 @@
-import pgzrun
 from pgzero.builtins import Actor
 import random
 import oth
@@ -102,7 +101,7 @@ class Minesweeper ():
                 if not self._grid[r][c][1] and self._grid[r][c][4]:
                     nonbombs -= 1
         return nonbombs == 0
-
+    
     def draw (self):
         for r in range (self.ROWS):
             for c in range (self.COLS):
