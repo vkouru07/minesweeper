@@ -10,6 +10,8 @@ from pgzero.builtins import Actor, mouse
 from pgzero import screen
 import oth  
 
+import database 
+
 os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 TITLE = "minesweeper"
@@ -26,6 +28,7 @@ board = minesweeper.Minesweeper (ROWS, COLS, BOMBS, S_WIDTH)
 first_click = True
 
 gamestate = 0 # 0: running, 1: win, 2:lost 
+game_score = 0 
 
 win = Actor ("win")
 win.pos = WIDTH/2, HEIGHT/2
@@ -71,11 +74,19 @@ def draw ():
     board.draw ()
     if gamestate != 0:
         if gamestate == 1:
-            # board.blur_background ()
             win.draw()
         elif gamestate == 2:
-            board.blur_background ()
+            # database.save_high_score ("test2", 2)
             lost.draw()
+        
+        with database.HighScoreManager() as highscore_manager:
+            if highscore_manager.insert_score('', game_score + 1):  # Pass an empty name initially
+                # If it's a new high score, ask for the player's name
+                player_name = input("Congratulations! You made a new high score! Enter your name: ")
+                # Update the high score with the player's name
+                highscore_manager.insert_score(player_name, game_score)
         again.draw ()
 
 pgzrun.go()
+
+print (database.load_high_scores()) 

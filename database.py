@@ -1,108 +1,55 @@
 import sqlite3
-import json
-from hashlib import sha256
 
-'''
-To avoid uneccessary operations, only a max of 5 highscores are stored at any given moment. 
-'''
+class HighScoreManager:
+    def __init__(self, db_name='highscores.db'):
+        self.db_name = db_name
+        self.conn = None
+        self.cursor = None
 
-# Connect to the SQLite database (or create it if it doesn't exist)
-def init_database (): 
-    global conn, cursor 
-    conn = sqlite3.connect('highscores.db')
-    cursor = conn.cursor()
+    def __enter__(self):
+        # Open the database connection and initialize the cursor
+        self.conn = sqlite3.connect(self.db_name)
+        self.cursor = self.conn.cursor()
+        self._initialize_db()
+        return self
 
-    # Create a table to store high scores
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS highscores (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        player_name TEXT NOT NULL,
-        score INTEGER NOT NULL,
-        signature TEXT NOT NULL
-    )
-    ''')
-    conn.commit()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Close the database connection
+        if self.conn:
+            self.conn.close()
 
-def save_high_score(player_name, score):
-    # Create a dictionary to store the high score data
-    high_score = {
-        'player_name': player_name,
-        'score': score
-    }
+    def _initialize_db(self):
+        # Create the highscores table if it doesn't exist
+        self.cursor.execute('''
+        CREATE TABLE IF NOT EXISTS highscores (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_name TEXT NOT NULL,
+            score INTEGER NOT NULL
+        )
+        ''')
+        self.conn.commit()
 
-    # Serialize the data to JSON
-    high_score_json = json.dumps(high_score).encode('utf-8')
+    def insert_score(self, player_name, score):
+        # Fetch the current top 5 scores
+        self.cursor.execute('SELECT score FROM highscores ORDER BY score DESC LIMIT 5')
+        top_scores = self.cursor.fetchall()
 
-    # Generate a SHA256 hash of the high score data
-    signature = sha256(high_score_json).hexdigest()
+        # If there are less than 5 scores or the new score is higher than the lowest top score
+        if len(top_scores) < 5 or score > top_scores[-1][0]:
+            # Insert the new score
+            self.cursor.execute('INSERT INTO highscores (player_name, score) VALUES (?, ?)', (player_name, score))
+            self.conn.commit()
 
-    # Load the top five high scores from the database
-    cursor.execute('SELECT * FROM highscores ORDER BY score DESC LIMIT 5')
-    top_five_high_scores = cursor.fetchall()
+            # If there are now more than 5 scores, delete the lowest score
+            self.cursor.execute('SELECT id FROM highscores ORDER BY score DESC LIMIT 5 OFFSET 5')
+            ids_to_delete = self.cursor.fetchall()
+            for id_to_delete in ids_to_delete:
+                self.cursor.execute('DELETE FROM highscores WHERE id = ?', (id_to_delete[0],))
+            self.conn.commit()
+            return True  # New high score
+        return False  # Not a high score
 
-    # Check if the new score is higher than any of the top five high scores
-    for high_score in top_five_high_scores:
-        if high_score[2] <= score:
-            # If it is, update the corresponding high score in the database
-            cursor.execute('''
-            UPDATE highscores
-            SET score = ?, signature = ?
-            WHERE player_name = ?
-            ''', (score, sha256(high_score_json).hexdigest(), player_name))
-
-            # Commit the changes and break the loop
-            conn.commit()
-            break
-    else:
-        # If the new score is not higher than any of the top five high scores,
-        # do not insert it into the database
-        print("Score not high enough to be a top score.")
-
-    # Commit the changes if a high score was updated
-    conn.commit()
-
-
-def load_high_scores():
-    # Query the high scores from the database
-    cursor.execute('SELECT * FROM highscores ORDER BY score DESC LIMIT 5')
-    high_scores = cursor.fetchall()
-
-    # Deserialize the high score data and verify the signatures
-    loaded_high_scores = []
-    for row in high_scores:
-        high_score_json = row[1].encode('utf-8')
-        signature = row[2]
-
-        calculated_signature = sha256(high_score_json).hexdigest()
-
-        if signature == calculated_signature:
-            high_score = json.loads(high_score_json.decode('utf-8'))
-            loaded_high_scores.append(high_score)
-
-    return loaded_high_scores
-
-# def update_top_five(player_name, score):
-#     # Load all high scores from the database
-#     all_high_scores = load_high_scores()
-
-#     # Update the player's score if necessary 
-#     for i, high_score in enumerate(all_high_scores):
-#         if high_score['player_name'] == player_name:
-#             all_high_scores[i]['score'] = score
-#             break
-
-#     # Sort the high scores in descending order
-#     all_high_scores.sort(key=lambda x: x['score'], reverse=True)
-
-#     # Limit to the top five high scores
-#     all_high_scores = all_high_scores[:5]
-
-#     # Update the database with the top five high scores
-#     for high_score in all_high_scores:
-#         cursor.execute('''
-#         UPDATE highscores
-#         SET score = ?, signature = ?
-#         WHERE player_name = ?
-#         ''', (high_score['score'], sha256(json.dumps(high_score).encode('utf-8')).hexdigest(), high_score['player_name']))
-
-#     conn.commit()
+    def get_highscores(self):
+        # Fetch and return the top 5 scores
+        self.cursor.execute('SELECT player_name, score FROM highscores ORDER BY score DESC LIMIT 5')
+        return self.cursor.fetchall()
